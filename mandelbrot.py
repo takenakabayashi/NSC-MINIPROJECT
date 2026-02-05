@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-max_iter = 1000
+max_iter = 100
 
 def mandelbrot_point(c):
     """
