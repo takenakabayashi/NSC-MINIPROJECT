@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 max_iter = 100
 
@@ -43,9 +44,28 @@ def compute_mandelbrot(x_min, x_max, y_min, y_max):
             mandelbrot_set[i, j] = result
             
     return mandelbrot_set
+
+def visualize_mandelbrot(mandelbrot_set, x_min, x_max, y_min, y_max, colormap):
+    """
+    Function to visualize Mandelbrot Set with a colormap
+    
+    :param mandelbrot_set: 2D array of Mandelbrot Set results
+    :param x_min: Minimum x value of the complex plane
+    :param x_max: Maximum x value of the complex plane
+    :param y_min: Minimum y value of the complex plane
+    :param y_max: Maximum y value of the complex plane
+    :param colormap: Colormap to use for visualization
+    """
+    plt.imshow(mandelbrot_set, extent=[x_min, x_max, y_min, y_max], cmap=colormap)
+    plt.colorbar()
+    plt.title("Mandelbrot Set")
+    plt.xlabel("X axis")
+    plt.ylabel("Y axis")
+    plt.show()
     
 if __name__ == "__main__":
     x_min, x_max = -2.0, 1.0
     y_min, y_max = -1.5, 1.5
+    colormap = 'inferno'
     result = compute_mandelbrot(x_min, x_max, y_min, y_max)
-    print(result)
+    visualize_mandelbrot(result, x_min, x_max, y_min, y_max, colormap)
