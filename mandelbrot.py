@@ -57,7 +57,7 @@ def compute_mandelbrot(x_min, x_max, y_min, y_max, width, height):
             
     return mandelbrot_set
 
-def visualize_mandelbrot(mandelbrot_set, x_min, x_max, y_min, y_max, colormap):
+def visualize_mandelbrot(mandelbrot_set, title, x_min, x_max, y_min, y_max, colormap):
     """
     Function to visualize Mandelbrot Set with a colormap
     
@@ -70,9 +70,22 @@ def visualize_mandelbrot(mandelbrot_set, x_min, x_max, y_min, y_max, colormap):
     """
     plt.imshow(mandelbrot_set, extent=[x_min, x_max, y_min, y_max], cmap=colormap)
     plt.colorbar()
-    plt.title("Mandelbrot Set")
+    plt.title(title)
     plt.xlabel("X axis")
     plt.ylabel("Y axis")
+    plt.show()
+    
+def grid_size_plot(grid_sizes, times):
+    """
+    Function to display grid sizes vs execution times bar plot
+    
+    :param grid_sizes: Array of grid sizes
+    :param times: Array of execution times
+    """
+    plt.bar(grid_sizes, times, color='blue')
+    plt.title("Mandelbrot grid sizes vs times")
+    plt.xlabel("Grid size")
+    plt.ylabel("Execution times")
     plt.show()
     
 if __name__ == "__main__":
@@ -80,18 +93,26 @@ if __name__ == "__main__":
     x_min, x_max = -2.0, 1.0
     y_min, y_max = -1.5, 1.5
     # width and height define the resolution of the output image
-    width = 1024
-    height = 1024
+    grid_sizes = ['256', '512', '1024', '2048', '4096']
+    execution_times = []
     
-    # Color map for visualization 
-    colormap = 'inferno'
-    
-    # Compute the Mandelbrot set for the specified area
-    result = compute_mandelbrot(x_min, x_max, y_min, y_max, width, height)
-    
-    med_time, result = benchmark(compute_mandelbrot, x_min, x_max, y_min, y_max, width, height, n_runs=3)
-    
-    print(f"Execution time: {med_time:.2f} seconds")
-    
-    # Visualize Mandelbrot Set
-    visualize_mandelbrot(result, x_min, x_max, y_min, y_max, colormap)
+    for gr_size in grid_sizes:
+        gr_size = int(gr_size)
+        width, height = gr_size, gr_size
+        
+        # Color map for visualization 
+        colormap = 'inferno'
+        
+        # Compute the Mandelbrot set for the specified area
+        result = compute_mandelbrot(x_min, x_max, y_min, y_max, width, height)
+        
+        med_time, result = benchmark(compute_mandelbrot, x_min, x_max, y_min, y_max, width, height, n_runs=3)
+        
+        print(f"Execution time ({gr_size}x{gr_size}): {med_time:.4f} seconds")
+        
+        # Visualize Mandelbrot Set
+        visualize_mandelbrot(result, f"Mandelbrot Set ({gr_size}x{gr_size})", x_min, x_max, y_min, y_max, colormap)
+        
+        execution_times.append(med_time)
+        
+    grid_size_plot(grid_sizes, execution_times)
