@@ -4,7 +4,6 @@ import time
 
 max_iter = 100
 
-# Deprecated
 def mandelbrot_point(c):
     """
     Determines if a complex number c is in the Mandelbrot set.
@@ -38,17 +37,24 @@ def compute_mandelbrot(x_min, x_max, y_min, y_max, width, height):
     X, Y = np.meshgrid(widthArr, heightArr)
     complex_grid = X + 1j * Y
     
-    Z_set = np.zeros(complex_grid.shape, dtype=complex)
+    # Deprecated method - Create grid of complex numbers from the x and y values
+    #complex_grid = np.array([[complex(x, y) for x in widthArr] for y in heightArr])
     
+    Z_set = np.zeros(complex_grid.shape, dtype=complex)
     # Initial array to hold Mandelbrot set results
     mandelbrot_set = np.zeros(complex_grid.shape, dtype=int)
     
-    # Loop through iterations and update arrays based on mask
     for i in range(max_iter):
         mask = np.abs(Z_set) <= 2
         Z_set[mask] = Z_set[mask]**2 + complex_grid[mask]
         mandelbrot_set[mask] += 1
     
+    # Old deprecated method - looping over each individual array
+    """ # Loop through each complex number and determine if it is in the Mandelbrot set
+    for i, row in enumerate(complex_grid):
+        for j, c in enumerate(row):
+            mandelbrot_set[i, j] = mandelbrot_point(c) """
+            
     return mandelbrot_set
 
 def visualize_mandelbrot(mandelbrot_set, x_min, x_max, y_min, y_max, colormap):
