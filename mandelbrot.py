@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import yaml
 from benchmark import benchmark
 
-max_iter = 100
-
+# Deprecated
 def mandelbrot_point(c):
     """
     Determines if a complex number c is in the Mandelbrot set.
@@ -18,7 +18,7 @@ def mandelbrot_point(c):
         z = z*z + c # Update z using the Mandelbrot formula
     return max_iter # Return max iterations if in set
 
-def compute_mandelbrot(x_min, x_max, y_min, y_max, width, height):
+def compute_mandelbrot(x_min, x_max, y_min, y_max, width, height, max_iter):
     """
     Compute Mandelbrot Set for a given range of x and y values.
     
@@ -89,13 +89,25 @@ def grid_size_plot(grid_sizes, times):
     plt.show()
     
 if __name__ == "__main__":
+    with open("mandelbrot_regions.yml", 'r') as f:
+        yaml_file = yaml.full_load(f)
+    
+    regions_dict = yaml_file.get("Regions", {})
+    
+    print("Regions: ", list(regions_dict.keys()))
+    region = input("Choose a region: ")
+    
+    if(len(regions_dict[region]) > 0):
+        region = regions_dict[region]
+    
     # x_min to x_max and y_min to y_max define the area of the complex plane to visualize
-    x_min, x_max = -2.0, 1.0
-    y_min, y_max = -1.5, 1.5
+    x_min, x_max = region['x_min'], region['x_max']
+    y_min, y_max = region['y_min'], region['y_max']
+    max_iter = region['max_iter']
     # width and height define the resolution of the output image
     grid_sizes = ['256', '512', '1024', '2048', '4096']
     execution_times = []
-    show_plots = False
+    show_plots = True
     
     for gr_size in grid_sizes:
         gr_size = int(gr_size)
@@ -105,9 +117,8 @@ if __name__ == "__main__":
         colormap = 'inferno'
         
         # Compute the Mandelbrot set for the specified area
-        result = compute_mandelbrot(x_min, x_max, y_min, y_max, width, height)
         
-        med_time, result = benchmark(compute_mandelbrot, x_min, x_max, y_min, y_max, width, height, n_runs=3)
+        med_time, result = benchmark(compute_mandelbrot, x_min, x_max, y_min, y_max, width, height, max_iter, n_runs=3)
         
         print(f"Execution time ({gr_size}x{gr_size}): {med_time:.4f} seconds")
         
