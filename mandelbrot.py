@@ -18,7 +18,7 @@ def mandelbrot_point(c):
         z = z*z + c # Update z using the Mandelbrot formula
     return max_iter # Return max iterations if in set
 
-def compute_mandelbrot(x_min, x_max, y_min, y_max):
+def compute_mandelbrot(x_min, x_max, y_min, y_max, width, height):
     """
     Compute Mandelbrot Set for a given range of x and y values.
     
@@ -26,14 +26,16 @@ def compute_mandelbrot(x_min, x_max, y_min, y_max):
     :param x_max: Maximum x value of the complex plane
     :param y_min: Minimum y value of the complex plane
     :param y_max: Maximum y value of the complex plane
+    :param width: Number of points along the x-axis
+    :param height: Number of points along the y-axis
     """
     
-    # Compute evenly spaced values for x_min to x_max and y_min to y_max
-    width = np.linspace(x_min, x_max, max_iter)
-    height = np.linspace(y_min, y_max, max_iter)
+    # Compute evenly spaced values for x_min to x_max and y_min to y_max with 
+    widthArr = np.linspace(x_min, x_max, width)
+    heightArr = np.linspace(y_min, y_max, height)
     
     # Create grid of complex numbers from the x and y values
-    complex_grid = np.array([[complex(x, y) for x in width] for y in height])
+    complex_grid = np.array([[complex(x, y) for x in widthArr] for y in heightArr])
     
     # Initial array to hold Mandelbrot set results
     mandelbrot_set = np.zeros(complex_grid.shape, dtype=int)
@@ -71,12 +73,15 @@ if __name__ == "__main__":
     # x_min to x_max and y_min to y_max define the area of the complex plane to visualize
     x_min, x_max = -2.0, 1.0
     y_min, y_max = -1.5, 1.5
+    # width and height define the resolution of the output image
+    width = 1024
+    height = 1024
     
     # Color map for visualization 
     colormap = 'inferno'
     
     # Compute the Mandelbrot set for the specified area
-    result = compute_mandelbrot(x_min, x_max, y_min, y_max)
+    result = compute_mandelbrot(x_min, x_max, y_min, y_max, width, height)
     
     # Compute end time and print execution time
     end_time = time.time() - start_time
