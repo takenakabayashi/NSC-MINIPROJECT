@@ -82,8 +82,8 @@ def grid_size_plot(grid_sizes, times):
     :param grid_sizes: Array of grid sizes
     :param times: Array of execution times
     """
-    plt.bar(grid_sizes, times, color='blue')
-    plt.title("Mandelbrot grid sizes vs times")
+    plt.plot(grid_sizes, times, color='blue', marker='o')
+    plt.title("Mandelbrot Performance Tracking")
     plt.xlabel("Grid size")
     plt.ylabel("Execution times")
     plt.show()
@@ -95,6 +95,7 @@ if __name__ == "__main__":
     # width and height define the resolution of the output image
     grid_sizes = ['256', '512', '1024', '2048', '4096']
     execution_times = []
+    show_plots = False
     
     for gr_size in grid_sizes:
         gr_size = int(gr_size)
@@ -111,7 +112,8 @@ if __name__ == "__main__":
         print(f"Execution time ({gr_size}x{gr_size}): {med_time:.4f} seconds")
         
         # Visualize Mandelbrot Set
-        visualize_mandelbrot(result, f"Mandelbrot Set ({gr_size}x{gr_size})", x_min, x_max, y_min, y_max, colormap)
+        if(show_plots):
+            visualize_mandelbrot(result, f"Mandelbrot Set ({gr_size}x{gr_size})", x_min, x_max, y_min, y_max, colormap)
         
         execution_times.append(med_time)
         
