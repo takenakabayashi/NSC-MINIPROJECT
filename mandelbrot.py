@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import time
+from benchmark import benchmark
 
 max_iter = 100
 
@@ -76,9 +76,6 @@ def visualize_mandelbrot(mandelbrot_set, x_min, x_max, y_min, y_max, colormap):
     plt.show()
     
 if __name__ == "__main__":
-    # Measure start execution time
-    start_time = time.time() 
-    
     # x_min to x_max and y_min to y_max define the area of the complex plane to visualize
     x_min, x_max = -2.0, 1.0
     y_min, y_max = -1.5, 1.5
@@ -92,9 +89,9 @@ if __name__ == "__main__":
     # Compute the Mandelbrot set for the specified area
     result = compute_mandelbrot(x_min, x_max, y_min, y_max, width, height)
     
-    # Compute end time and print execution time
-    end_time = time.time() - start_time
-    print(f"Execution time: {end_time:.2f} seconds")
+    med_time, result = benchmark(compute_mandelbrot, x_min, x_max, y_min, y_max, width, height, n_runs=3)
+    
+    print(f"Execution time: {med_time:.2f} seconds")
     
     # Visualize Mandelbrot Set
     visualize_mandelbrot(result, x_min, x_max, y_min, y_max, colormap)
