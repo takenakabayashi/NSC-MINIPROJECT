@@ -34,8 +34,8 @@ def compute_mandelbrot(x_min, x_max, y_min, y_max, width, height):
     widthArr = np.linspace(x_min, x_max, width)
     heightArr = np.linspace(y_min, y_max, height)
     
-    # Create grid of complex numbers from the x and y values
-    complex_grid = np.array([[complex(x, y) for x in widthArr] for y in heightArr])
+    X, Y = np.meshgrid(widthArr, heightArr)
+    complex_grid = X + 1j * Y
     
     # Initial array to hold Mandelbrot set results
     mandelbrot_set = np.zeros(complex_grid.shape, dtype=int)
@@ -43,8 +43,7 @@ def compute_mandelbrot(x_min, x_max, y_min, y_max, width, height):
     # Loop through each complex number and determine if it is in the Mandelbrot set
     for i, row in enumerate(complex_grid):
         for j, c in enumerate(row):
-            result = mandelbrot_point(c)
-            mandelbrot_set[i, j] = result
+            mandelbrot_set[i, j] = mandelbrot_point(c)
             
     return mandelbrot_set
 
