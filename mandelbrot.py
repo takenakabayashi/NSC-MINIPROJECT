@@ -4,27 +4,30 @@ import matplotlib.pyplot as plt
 import yaml
 import cProfile, pstats
 import os
+from numba import njit
 from benchmark import benchmark
 
 os.environ["LINE_PROFILE"] = '1'
 
-@line_profiler.profile
+#@line_profiler.profile
+@njit
 def mandelbrot_point(c, max_iter):
     """
     Determines if a complex number c is in the Mandelbrot set.
     
     :param c: Complex number to test if within Mandelbrot set
     """
-    z = 0
+    z = 0j
     # Loop through number of iterations
     for n in range(max_iter):
-        if(abs(z) > 2): # Check if z stays bounded
+        if z.real*z.real + z.imag*z.imag > 4.0: # Check if z stays bounded
             return n # Return current number of iterations
         z = z*z + c # Update z using the Mandelbrot formula
     return max_iter # Return max iterations if in set
 
-@line_profiler.profile
-def compute_mandelbrot(x_min, x_max, y_min, y_max, width, height, max_iter, impl):
+#@line_profiler.profile
+@njit
+def compute_mandelbrot_naive(x_min, x_max, y_min, y_max, width, height, max_iter):
     """
     Compute Mandelbrot Set for a given range of x and y values.
     
@@ -36,39 +39,48 @@ def compute_mandelbrot(x_min, x_max, y_min, y_max, width, height, max_iter, impl
     :param height: Number of points along the y-axis
     :max_iter: Maximum number of iterations to determine if a point is in the Mandelbrot set
     """
+    # Compute evenly spaced values for x_min to x_max and y_min to y_max
+    widthArr = np.linspace(x_min, x_max, width)
+    heightArr = np.linspace(y_min, y_max, height)
     
-    if impl == "naive":
-        # Compute evenly spaced values for x_min to x_max and y_min to y_max
-        widthArr = np.linspace(x_min, x_max, width)
-        heightArr = np.linspace(y_min, y_max, height)
-        
-        complex_grid = [[complex(x, y) for x in widthArr] for y in heightArr] # Create grid of complex numbers from the x and y values
-        mandelbrot_set = [[0 for _ in range(width)] for _ in range(height)] # Initial 2D array to hold Mandelbrot set results
-        
-        # Loop through each complex number and determine if it is in the Mandelbrot set
-        for i, row in enumerate(complex_grid):
-            for j, c in enumerate(row):
-                mandelbrot_set[i][j] = mandelbrot_point(c, max_iter)
-        
-    elif impl == "numpy":
-        # Compute evenly spaced values for x_min to x_max and y_min to y_max 
-        widthArr = np.linspace(x_min, x_max, width)
-        heightArr = np.linspace(y_min, y_max, height)
-        
-        X, Y = np.meshgrid(widthArr, heightArr)
-        complex_grid = X + 1j * Y
-        
-        # Deprecated method - Create grid of complex numbers from the x and y values
-        #complex_grid = np.array([[complex(x, y) for x in widthArr] for y in heightArr])
-        
-        Z_set = np.zeros(complex_grid.shape, dtype=complex)
-        # Initial array to hold Mandelbrot set results
-        mandelbrot_set = np.zeros(complex_grid.shape, dtype=int)
-        
-        for i in range(max_iter):
-            mask = np.abs(Z_set) <= 2
-            Z_set[mask] = Z_set[mask]**2 + complex_grid[mask]
-            mandelbrot_set[mask] += 1
+    complex_grid = [[complex(x, y) for x in widthArr] for y in heightArr] # Create grid of complex numbers from the x and y values
+    mandelbrot_set = [[0 for _ in range(width)] for _ in range(height)] # Initial 2D array to hold Mandelbrot set results
+    
+    # Loop through each complex number and determine if it is in the Mandelbrot set
+    for i, row in enumerate(complex_grid):
+        for j, c in enumerate(row):
+            mandelbrot_set[i][j] = mandelbrot_point(c, max_iter)
+            
+    return mandelbrot_set
+
+
+def compute_mandelbrot_numpy(x_min, x_max, y_min, y_max, width, height, max_iter):
+    """
+    Compute Mandelbrot Set for a given range of x and y values.
+    
+    :param x_min: Minimum x value of the complex plane
+    :param x_max: Maximum x value of the complex plane
+    :param y_min: Minimum y value of the complex plane
+    :param y_max: Maximum y value of the complex plane
+    :param width: Number of points along the x-axis
+    :param height: Number of points along the y-axis
+    :max_iter: Maximum number of iterations to determine if a point is in the Mandelbrot set
+    """
+    # Compute evenly spaced values for x_min to x_max and y_min to y_max 
+    widthArr = np.linspace(x_min, x_max, width)
+    heightArr = np.linspace(y_min, y_max, height)
+    
+    X, Y = np.meshgrid(widthArr, heightArr)
+    complex_grid = X + 1j * Y
+    
+    Z_set = np.zeros(complex_grid.shape, dtype=complex)
+    # Initial array to hold Mandelbrot set results
+    mandelbrot_set = np.zeros(complex_grid.shape, dtype=int)
+    
+    for i in range(max_iter):
+        mask = np.abs(Z_set) <= 2
+        Z_set[mask] = Z_set[mask]**2 + complex_grid[mask]
+        mandelbrot_set[mask] += 1
             
     return mandelbrot_set
 
@@ -142,10 +154,15 @@ if __name__ == "__main__":
     implementations = ['naive', 'numpy']
     execution_times = []
     show_plots = True
-    do_profiling = True
+    do_profiling = False
     
     for impl in implementations:
         print(f"Running {impl} implementation...")
+        
+        if impl == 'naive':
+            compute_func = compute_mandelbrot_naive
+        elif impl == 'numpy':
+            compute_func = compute_mandelbrot_numpy
         
         if not do_profiling: 
             impl_execution_times = []
@@ -154,8 +171,10 @@ if __name__ == "__main__":
                 gr_size = int(gr_size)
                 width, height = gr_size, gr_size
                 print(f"Computing Mandelbrot set for grid size: {gr_size}x{gr_size}...")
+        
+                _ = compute_func(x_min, x_max, y_min, y_max, width, height, max_iter) # Warm up run to compile numba function
                 
-                med_time, result = benchmark(compute_mandelbrot, x_min, x_max, y_min, y_max, width, height, max_iter, impl, n_runs=3)
+                med_time, result = benchmark(compute_func, x_min, x_max, y_min, y_max, width, height, max_iter, n_runs=3)
                 print(f"Execution time ({gr_size}x{gr_size}): {med_time:.4f} seconds")
                 
                 # Color map for visualization 
@@ -172,4 +191,4 @@ if __name__ == "__main__":
             gr_size = 512
             width, height = gr_size, gr_size
             print(f"Profiling {impl} implementation for grid size: {gr_size}x{gr_size}...")
-            run_profiler(compute_mandelbrot, x_min, x_max, y_min, y_max, width, height, max_iter, impl)
+            run_profiler(compute_func, x_min, x_max, y_min, y_max, width, height, max_iter)
