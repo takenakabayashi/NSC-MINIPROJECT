@@ -1,0 +1,58 @@
+Timer unit: 1e-07 s
+
+Total time: 0.423604 s
+File: c:\Users\takek\Documents\University\Computer Engineering\Semester 2\Numerical Scientific Computing\NSC-MINIPROJECT\mandelbrot.py
+Function: compute_mandelbrot at line 25
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    25                                           @line_profiler.profile
+    26                                           def compute_mandelbrot(x_min, x_max, y_min, y_max, width, height, max_iter, impl):
+    27                                               """
+    28                                               Compute Mandelbrot Set for a given range of x and y values.
+    29                                               
+    30                                               :param x_min: Minimum x value of the complex plane
+    31                                               :param x_max: Maximum x value of the complex plane
+    32                                               :param y_min: Minimum y value of the complex plane
+    33                                               :param y_max: Maximum y value of the complex plane
+    34                                               :param width: Number of points along the x-axis
+    35                                               :param height: Number of points along the y-axis
+    36                                               :max_iter: Maximum number of iterations to determine if a point is in the Mandelbrot set
+    37                                               """
+    38                                               
+    39         1         14.0     14.0      0.0      if impl == "naive":
+    40                                                   # Compute evenly spaced values for x_min to x_max and y_min to y_max
+    41                                                   widthArr = np.linspace(x_min, x_max, width)
+    42                                                   heightArr = np.linspace(y_min, y_max, height)
+    43                                                   
+    44                                                   complex_grid = [[complex(x, y) for x in widthArr] for y in heightArr] # Create grid of complex numbers from the x and y values
+    45                                                   mandelbrot_set = [[0 for _ in range(width)] for _ in range(height)] # Initial 2D array to hold Mandelbrot set results
+    46                                                   
+    47                                                   # Loop through each complex number and determine if it is in the Mandelbrot set
+    48                                                   for i, row in enumerate(complex_grid):
+    49                                                       for j, c in enumerate(row):
+    50                                                           mandelbrot_set[i][j] = mandelbrot_point(c, max_iter)
+    51                                                   
+    52         1          6.0      6.0      0.0      elif impl == "numpy":
+    53                                                   # Compute evenly spaced values for x_min to x_max and y_min to y_max 
+    54         1       1273.0   1273.0      0.0          widthArr = np.linspace(x_min, x_max, width)
+    55         1        440.0    440.0      0.0          heightArr = np.linspace(y_min, y_max, height)
+    56                                                   
+    57         1      11990.0  11990.0      0.3          X, Y = np.meshgrid(widthArr, heightArr)
+    58         1      41362.0  41362.0      1.0          complex_grid = X + 1j * Y
+    59                                                   
+    60                                                   # Deprecated method - Create grid of complex numbers from the x and y values
+    61                                                   #complex_grid = np.array([[complex(x, y) for x in widthArr] for y in heightArr])
+    62                                                   
+    63         1        369.0    369.0      0.0          Z_set = np.zeros(complex_grid.shape, dtype=complex)
+    64                                                   # Initial array to hold Mandelbrot set results
+    65         1        130.0    130.0      0.0          mandelbrot_set = np.zeros(complex_grid.shape, dtype=int)
+    66                                                   
+    67       101       1175.0     11.6      0.0          for i in range(max_iter):
+    68       100    1795379.0  17953.8     42.4              mask = np.abs(Z_set) <= 2
+    69       100    1842033.0  18420.3     43.5              Z_set[mask] = Z_set[mask]**2 + complex_grid[mask]
+    70       100     541859.0   5418.6     12.8              mandelbrot_set[mask] += 1
+    71                                                       
+    72         1          7.0      7.0      0.0      return mandelbrot_set
+
+  0.42 seconds - c:\Users\takek\Documents\University\Computer Engineering\Semester 2\Numerical Scientific Computing\NSC-MINIPROJECT\mandelbrot.py:25 - compute_mandelbrot

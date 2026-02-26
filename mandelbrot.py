@@ -1,8 +1,14 @@
+import line_profiler
 import numpy as np
 import matplotlib.pyplot as plt
 import yaml
+import cProfile, pstats
+import os
 from benchmark import benchmark
 
+os.environ["LINE_PROFILE"] = '1'
+
+@line_profiler.profile
 def mandelbrot_point(c, max_iter):
     """
     Determines if a complex number c is in the Mandelbrot set.
@@ -17,6 +23,7 @@ def mandelbrot_point(c, max_iter):
         z = z*z + c # Update z using the Mandelbrot formula
     return max_iter # Return max iterations if in set
 
+@line_profiler.profile
 def compute_mandelbrot(x_min, x_max, y_min, y_max, width, height, max_iter, impl):
     """
     Compute Mandelbrot Set for a given range of x and y values.
@@ -96,6 +103,23 @@ def grid_size_plot(grid_sizes, times, title="Mandelbrot Performance Tracking"):
     plt.ylabel("Execution times")
     plt.show()
     
+def run_profiler(func, *args):
+    """
+    Function to run cProfile profiler on a given function and display stats
+    
+    :param func: Function to profile
+    :param args: Arguments to pass to the function being profiled
+    """
+    profiler = cProfile.Profile()
+    profiler.enable()
+    func(*args)
+    profiler.disable()
+    
+    stats = pstats.Stats(profiler)
+    stats.strip_dirs()
+    stats.sort_stats('cumulative')
+    stats.print_stats(10)  # Print top 10 functions
+    
 if __name__ == "__main__":
     # Load available regions from YAML file
     with open("mandelbrot_regions.yml", 'r') as f:
@@ -110,37 +134,42 @@ if __name__ == "__main__":
     if(len(regions_dict[region]) > 0):
         region = regions_dict[region]
     
-    # x_min to x_max and y_min to y_max define the area of the complex plane to visualize
+    # initialize parameters
     x_min, x_max = region['x_min'], region['x_max']
     y_min, y_max = region['y_min'], region['y_max']
     max_iter = region['max_iter']
-    # width and height define the resolution of the output image
     grid_sizes = ['256', '512', '1024', '2048', '4096']
     implementations = ['naive', 'numpy']
     execution_times = []
     show_plots = True
+    do_profiling = True
     
     for impl in implementations:
         print(f"Running {impl} implementation...")
-        impl_execution_times = []
         
-        for gr_size in grid_sizes:
-            gr_size = int(gr_size)
+        if not do_profiling: 
+            impl_execution_times = []
+            
+            for gr_size in grid_sizes:
+                gr_size = int(gr_size)
+                width, height = gr_size, gr_size
+                print(f"Computing Mandelbrot set for grid size: {gr_size}x{gr_size}...")
+                
+                med_time, result = benchmark(compute_mandelbrot, x_min, x_max, y_min, y_max, width, height, max_iter, impl, n_runs=3)
+                print(f"Execution time ({gr_size}x{gr_size}): {med_time:.4f} seconds")
+                
+                # Color map for visualization 
+                colormap = 'inferno'
+                
+                # Visualize Mandelbrot Set
+                if(show_plots):
+                    visualize_mandelbrot(result, f"Mandelbrot Set ({gr_size}x{gr_size})", x_min, x_max, y_min, y_max, colormap)
+                
+                impl_execution_times.append(med_time)
+            
+            grid_size_plot(grid_sizes, impl_execution_times, f"{impl.capitalize()} implementation performance tracking")
+        else:
+            gr_size = 512
             width, height = gr_size, gr_size
-            print(f"Computing Mandelbrot set for grid size: {gr_size}x{gr_size}...")
-            
-            # Compute the Mandelbrot set for the specified area
-            med_time, result = benchmark(compute_mandelbrot, x_min, x_max, y_min, y_max, width, height, max_iter, impl, n_runs=3)
-            
-            print(f"Execution time ({gr_size}x{gr_size}): {med_time:.4f} seconds")
-            
-            # Color map for visualization 
-            colormap = 'inferno'
-            
-            # Visualize Mandelbrot Set
-            if(show_plots):
-                visualize_mandelbrot(result, f"Mandelbrot Set ({gr_size}x{gr_size})", x_min, x_max, y_min, y_max, colormap)
-            
-            impl_execution_times.append(med_time)
-        
-        grid_size_plot(grid_sizes, impl_execution_times, f"{impl.capitalize()} implementation performance tracking")
+            print(f"Profiling {impl} implementation for grid size: {gr_size}x{gr_size}...")
+            run_profiler(compute_mandelbrot, x_min, x_max, y_min, y_max, width, height, max_iter, impl)
