@@ -12,8 +12,6 @@ def compute_columns(M):
         s = np.sum(M[:, i])
         
 if __name__ == "__main__":
-    time_start = time.time()
-        
     N = 10000
     A = np.random.rand(N, N)
     

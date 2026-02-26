@@ -95,7 +95,7 @@ if __name__ == "__main__":
     regions_dict = yaml_file.get("Regions", {})
     
     print("Regions: ", list(regions_dict.keys()))
-    region = input("Choose a region: ")
+    region = input("Choose a region: ").lower().title()
     
     if(len(regions_dict[region]) > 0):
         region = regions_dict[region]
