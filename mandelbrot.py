@@ -1,6 +1,7 @@
 import sys
 
 import line_profiler
+import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 import yaml
@@ -213,8 +214,7 @@ if __name__ == "__main__":
     y_min, y_max = region['y_min'], region['y_max']
     max_iter = region['max_iter']
     grid_sizes = ['256', '512', '1024', '2048', '4096']
-    grid_sizes = ['1024']
-    implementations = ['numba_dtype']
+    implementations = ['naive', 'numpy', 'numba', 'numba_dtype']
     execution_times = []
     show_plots = True
     do_profiling = False
