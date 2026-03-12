@@ -9,11 +9,10 @@ import os
 import time
 import statistics
 from numba import njit
-from benchmark import benchmark
 
 os.environ["LINE_PROFILE"] = '1'
 
-@njit
+@njit(cache=True)
 def mandelbrot_point(c_real, c_img, max_iter):
     """
     Determines if a complex number c is in the Mandelbrot set.
@@ -31,7 +30,7 @@ def mandelbrot_point(c_real, c_img, max_iter):
         z_real = z_real_squared - z_img_squared + c_real # Update real part of z using the Mandelbrot formula
     return max_iter # Return max iterations if in set
 
-@njit
+@njit(cache=True)
 def mandelbrot_chunk(row_start, row_end, N, x_min, x_max, y_min, y_max, max_iter):
     output_grid = np.empty((row_end - row_start, N), dtype=np.int32)
     dx = (x_max - x_min) / N
@@ -49,23 +48,25 @@ def mandelbrot_serial(x_min, x_max, y_min, y_max, N, max_iter):
 def _worker(args):
     return mandelbrot_chunk(*args)
 
-def mandelbrot_parallel(x_min, x_max, y_min, y_max, N, max_iter, num_processes):
-    chunk_size = max(1, N // num_processes)
+def mandelbrot_parallel(x_min, x_max, y_min, y_max, N, max_iter, num_processes, n_chunks=None):
+    if n_chunks is None:
+        n_chunks = num_processes
+    chunk_size = max(1, N // n_chunks)
     chunks, row = [], 0
     while row < N:
         row_end = min(row + chunk_size, N)
         chunks.append((row, row_end, N, x_min, x_max, y_min, y_max, max_iter))
         row = row_end
-        
+    tiny = [(0, 8, 8, x_min, x_max, y_min, y_max, max_iter)]
     with Pool(processes=num_processes) as pool:
-        pool.map(_worker, chunks)
+        pool.map(_worker, tiny)
         times_parallel = []
         for i in range(3):
             time_start = time.perf_counter()
             parts = np.vstack(pool.map(_worker, chunks))
             times_parallel.append(time.perf_counter() - time_start)
     time_median_parallel = statistics.median(times_parallel)
-    print(f"Parallel execution times: {times_parallel}")
+    print(f" ")
         
     return parts, time_median_parallel
 
@@ -156,7 +157,7 @@ if __name__ == "__main__":
             print(f"Median serial execution time: {median_serial_time:.4f} seconds")
                 
             for workers in range(1, os.cpu_count() + 1):
-                result, time_median_parallel = mandelbrot_parallel(x_min, x_max, y_min, y_max, width, max_iter, workers)
+                result, time_median_parallel = mandelbrot_parallel(x_min, x_max, y_min, y_max, width, max_iter, workers, n_chunks=workers*4)
                 
                 if(show_plots):
                     visualize_mandelbrot(result, f"Mandelbrot Set ({gr_size}x{gr_size})", x_min, x_max, y_min, y_max, 'inferno')
