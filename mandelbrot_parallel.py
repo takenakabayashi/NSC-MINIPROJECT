@@ -48,7 +48,7 @@ def mandelbrot_serial(x_min, x_max, y_min, y_max, N, max_iter):
 def _worker(args):
     return mandelbrot_chunk(*args)
 
-def mandelbrot_parallel(x_min, x_max, y_min, y_max, N, max_iter, num_processes, n_chunks=None):
+def mandelbrot_parallel(x_min, x_max, y_min, y_max, N, max_iter, num_processes, n_chunks=None, pool=None):
     if n_chunks is None:
         n_chunks = num_processes
     chunk_size = max(1, N // n_chunks)
@@ -57,6 +57,8 @@ def mandelbrot_parallel(x_min, x_max, y_min, y_max, N, max_iter, num_processes, 
         row_end = min(row + chunk_size, N)
         chunks.append((row, row_end, N, x_min, x_max, y_min, y_max, max_iter))
         row = row_end
+    if pool is not None:
+        return np.vstack(pool.map(_worker, chunks))
     tiny = [(0, 8, 8, x_min, x_max, y_min, y_max, max_iter)]
     with Pool(processes=num_processes) as pool:
         pool.map(_worker, tiny)
@@ -143,6 +145,8 @@ if __name__ == "__main__":
     show_plots = False
     do_profiling = False
     
+    optimal_workers = 4
+    
     if not do_profiling:
         
         for gr_size in grid_sizes:
@@ -155,15 +159,17 @@ if __name__ == "__main__":
                 serial_times.append(time.perf_counter() - time_start)
             median_serial_time = statistics.median(serial_times)
             print(f"Median serial execution time: {median_serial_time:.4f} seconds")
-                
-            for workers in range(1, os.cpu_count() + 1):
-                result, time_median_parallel = mandelbrot_parallel(x_min, x_max, y_min, y_max, width, max_iter, workers, n_chunks=workers*4)
+            
+            for mult in [1, 2, 4, 8, 16]:
+                chunks = mult * optimal_workers
+                result, time_median_parallel = mandelbrot_parallel(x_min, x_max, y_min, y_max, width, max_iter, optimal_workers, n_chunks=chunks)
                 
                 if(show_plots):
                     visualize_mandelbrot(result, f"Mandelbrot Set ({gr_size}x{gr_size})", x_min, x_max, y_min, y_max, 'inferno')
                     
                 speedup = median_serial_time / time_median_parallel
-                print(f"Grid size: {gr_size}x{gr_size}, Workers: {workers}, Parallel time: {time_median_parallel:.4f} seconds, Speedup: {speedup:.2f}x, Efficiency: {speedup/workers*100:.0f}%")
+                lif = optimal_workers * time_median_parallel / median_serial_time - 1
+                print(f"Grid size: {gr_size}x{gr_size}, Workers: {optimal_workers}, Chunks: {chunks}, Parallel time: {time_median_parallel:.4f} seconds, Speedup: {speedup:.2f}x, Efficiency: {speedup/optimal_workers*100:.0f}%, LIF: {lif:.2f}")
     else:
         gr_size = 512
         width, height = gr_size, gr_size
