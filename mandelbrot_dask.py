@@ -15,7 +15,7 @@ from numba import njit
 
 os.environ["LINE_PROFILE"] = '1'
 
-@njit(cache=True)
+@njit(fastmath=True)
 def mandelbrot_point(c_real, c_img, max_iter):
     """
     Determines if a complex number c is in the Mandelbrot set.
@@ -33,7 +33,7 @@ def mandelbrot_point(c_real, c_img, max_iter):
         z_real = z_real_squared - z_img_squared + c_real # Update real part of z using the Mandelbrot formula
     return max_iter # Return max iterations if in set
 
-@njit(cache=True)
+@njit(fastmath=True)
 def mandelbrot_chunk(row_start, row_end, N, x_min, x_max, y_min, y_max, max_iter):
     output_grid = np.empty((row_end - row_start, N), dtype=np.int32)
     dx = (x_max - x_min) / N
@@ -153,8 +153,8 @@ if __name__ == "__main__":
             median_serial_time = statistics.median(serial_times)
             print(f"Median serial execution time: {median_serial_time:.4f} seconds")
             
-            for chunk_mult in [1, 2, 4, 8, 16]:
-                chunks = chunk_mult * n_workers
+            for chunk_mult in [1, 2, 4, 8, 16, 32]:
+                chunks = chunk_mult
                 dask_times = []
                 
                 for i in range(3):
@@ -164,7 +164,7 @@ if __name__ == "__main__":
                 dask_times_median = statistics.median(dask_times)
                 speedup = median_serial_time / dask_times_median
                 lif = n_workers * dask_times_median / median_serial_time - 1
-                print(f"Median Dask execution time: {dask_times_median:.4f} seconds, Speedup: {speedup:.2f}x, LIF: {lif:.2f}")
+                print(f"Chunks: {chunks}, Median Dask execution time: {dask_times_median:.4f} seconds, Speedup: {speedup:.2f}x, LIF: {lif:.2f}")
     else:
         gr_size = 512
         width, height = gr_size, gr_size
