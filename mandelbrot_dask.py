@@ -153,7 +153,7 @@ if __name__ == "__main__":
             median_serial_time = statistics.median(serial_times)
             print(f"Median serial execution time: {median_serial_time:.4f} seconds")
             
-            for chunk_mult in [1, 2, 4, 8, 16, 32]:
+            for chunk_mult in [1, 2, 4, 8, 16, 32, 64, 128]:
                 chunks = chunk_mult
                 dask_times = []
                 
