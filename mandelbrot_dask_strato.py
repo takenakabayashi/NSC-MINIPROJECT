@@ -59,8 +59,7 @@ if __name__ == "__main__":
     x_min, x_max = -2, 1
     y_min, y_max = -1.5, 1.5
     max_iter = 100
-    grid_sizes = ['256', '512', '1024', '2048', '4096']
-    grid_sizes = ['1024']
+    grid_sizes = ['1024', '2048', '4096', '8192']
     execution_times = []
     n_workers = 4
     
