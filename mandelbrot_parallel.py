@@ -66,7 +66,6 @@ def mandelbrot_parallel(x_min, x_max, y_min, y_max, N, max_iter, num_processes, 
             parts = np.vstack(pool.map(_worker, chunks))
             times_parallel.append(time.perf_counter() - time_start)
     time_median_parallel = statistics.median(times_parallel)
-    print(f" ")
         
     return parts, time_median_parallel
 
@@ -143,7 +142,7 @@ if __name__ == "__main__":
     show_plots = False
     do_profiling = False
     
-    optimal_workers = 4
+    optimal_workers = 6
     
     if not do_profiling:
         
@@ -158,7 +157,7 @@ if __name__ == "__main__":
             median_serial_time = statistics.median(serial_times)
             print(f"Median serial execution time: {median_serial_time:.4f} seconds")
             
-            for mult in [1, 2, 4, 8, 16]:
+            for mult in [1, 2, 4, 8, 16, 32, 64]:
                 chunks = mult * optimal_workers
                 result, time_median_parallel = mandelbrot_parallel(x_min, x_max, y_min, y_max, width, max_iter, optimal_workers, n_chunks=chunks)
                 

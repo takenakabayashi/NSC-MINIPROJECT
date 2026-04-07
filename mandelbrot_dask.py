@@ -128,13 +128,13 @@ if __name__ == "__main__":
     x_min, x_max = region['x_min'], region['x_max']
     y_min, y_max = region['y_min'], region['y_max']
     max_iter = region['max_iter']
-    grid_sizes = ['256', '512', '1024', '2048', '4096']
-    grid_sizes = ['1024']
+    grid_sizes = ['256', '512', '1024', '2048', '4096', '8192']
+    #grid_sizes = ['1024']
     implementations = ['naive', 'numpy', 'numba', 'numba_dtype']
     execution_times = []
     show_plots = False
     do_profiling = False
-    n_workers = 4
+    n_workers = 6
     
     cluster = LocalCluster(n_workers=n_workers, threads_per_worker=1)
     client = Client(cluster)
