@@ -6,11 +6,11 @@ Regions:
     y_max: 1.5
     max_iter: 100
   Seahorse Valley:
-    x_min: -0.8
-    x_max: -0.7
-    y_min: 0.05
-    y_max: 0.15
-    max_iter: 500
+    x_min: -0.7530
+    x_max: -0.7490
+    y_min: 0.0990
+    y_max: 0.1030
+    max_iter: 1000
   Elephant Valley:
     x_min: 0.175
     x_max: 0.375
