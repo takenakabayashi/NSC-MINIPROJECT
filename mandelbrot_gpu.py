@@ -68,8 +68,8 @@ def mandelbrot_gpu_float32(x_min, x_max, y_min, y_max, N, max_iter):
     return image, t_end
 
 def mandelbrot_gpu_float64(x_min, x_max, y_min, y_max, N, max_iter):
-    #pragma OPENCL EXTENSION cl_khr_fp64 : enable
     KERNEL_SRC = """
+    #pragma OPENCL EXTENSION cl_khr_fp64 : enable
     __kernel void mandelbrot(
         __global int *result,
         const double x_min, const double x_max,
