@@ -1,4 +1,5 @@
 from numba import njit
+import numpy as np
 import pytest
 
 def mandelbrot_pixel(c: complex, max_iter: int) -> int:
@@ -48,3 +49,27 @@ IMPLEMENTATIONS = [mandelbrot_pixel, mandelbrot_pixel_numba]
 @pytest.mark.parametrize("c, max_iter, expected", KNOWN_CASES)
 def test_pixel_all(impl, c, max_iter, expected):
     assert impl(c, max_iter) == expected
+    
+    
+@pytest.mark.parametrize("impl", IMPLEMENTATIONS)
+def test_pixel_boundary_strict_inequality(impl):
+    assert impl(0+2j, 100) == 2
+    
+def test_naive_and_numba_agree_on_grid():
+    N = 32
+    max_iter = 100
+    x_min, x_max = -2.0, 1.0
+    y_min, y_max = -1.5, 1.5
+    
+    naive_grid = np.empty((N, N), dtype=np.int32)
+    numba_grid = np.empty((N, N), dtype=np.int32)
+    
+    for row in range(N):
+        c_imag = y_min + row * (y_max - y_min) / N
+        for col in range(N):
+            c_real = x_min + col * (x_max - x_min) / N
+            c = complex(c_real, c_imag)
+            naive_grid[row, col] = mandelbrot_pixel(c, max_iter)
+            numba_grid[row, col] = mandelbrot_pixel_numba(c, max_iter)
+    
+    np.testing.assert_array_equal(naive_grid, numba_grid)
