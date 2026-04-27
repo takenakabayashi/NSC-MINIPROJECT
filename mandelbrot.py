@@ -215,8 +215,9 @@ if __name__ == "__main__":
     max_iter = region['max_iter']
     grid_sizes = ['256', '512', '1024', '2048', '4096']
     implementations = ['naive', 'numpy', 'numba', 'numba_dtype']
+    implementations = ['numba_dtype']
     execution_times = []
-    show_plots = True
+    show_plots = False
     do_profiling = False
     
     for impl in implementations:
@@ -242,7 +243,7 @@ if __name__ == "__main__":
                 if impl == 'numba' or impl == 'numba_dtype':
                     _ = compute_func(x_min, x_max, y_min, y_max, width, height, max_iter) # Warm up run to compile numba function
                 
-                if impl == 'numba_dtype':
+                if impl == 'numba_dtype_compare':
                     _ = compute_mandelbrot_numba_dtype(x_min, x_max, y_min, y_max, width, height, max_iter, dtype=np.float32) # Warm up run to compile numba_dtype function with float32
                     
                     result_32 = compute_mandelbrot_numba_dtype(x_min, x_max, y_min, y_max, width, height, max_iter, dtype=np.float32) # Run with float32
